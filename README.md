@@ -14,3 +14,7 @@ time.Sleep(time.Second * 5)
 p.Stop()
 p.Shutdown()
 ```
+## Tested on
+
+* Windows 10 (VLC 3.6.0, 4.0.0-dev)
+* Ubuntu 18.04 (VLC 4.0.0-dev)

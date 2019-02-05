@@ -5,23 +5,26 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 )
 
 const (
-	initialReadTimeout = time.Millisecond * 500
-	nextReadTimeout    = time.Millisecond * 200
+	initialReadTimeout     = time.Millisecond * 500
+	nextReadTimeout        = time.Millisecond * 200
+	defaultShutdownCommand = "shutdown"
+	windowsShutdownCommand = "quit"
 )
 
 type tcpConnection struct {
-	port      int
-	debugMode bool
-	promptRe  *regexp.Regexp
+	port            int
+	debugMode       bool
+	promptRe        *regexp.Regexp
+	shutdownCommand string
 
 	conn       net.Conn
 	connReader *bufio.Reader
-	version    *vlcVersion
 }
 
 func newTCPConnection(port int, debugMode bool) *tcpConnection {
@@ -40,12 +43,15 @@ func (c *tcpConnection) Open() error {
 	}
 	c.connReader = bufio.NewReader(c.conn)
 
-	helpOutput, err := c.execCommand("help", false)
+	_, err = c.execCommand("help", false)
 	if err != nil {
 		return err
 	}
 
-	c.version = newVersionFactory().Detect(helpOutput)
+	c.shutdownCommand = defaultShutdownCommand
+	if runtime.GOOS == "windows" {
+		c.shutdownCommand = windowsShutdownCommand
+	}
 
 	return nil
 }
@@ -62,7 +68,7 @@ func (c *tcpConnection) run(commands <-chan *command) {
 		cmd.result <- &commandResult{output: output, err: err}
 		close(cmd.result)
 
-		if cmd.cmd == c.version.shutdownCommand {
+		if cmd.cmd == c.shutdownCommand {
 			break
 		}
 	}

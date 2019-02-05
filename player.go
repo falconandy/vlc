@@ -52,7 +52,6 @@ func (p *Player) Start() error {
 		"--one-instance",
 	}
 
-	// TODO: specific to a VLC version?
 	if runtime.GOOS == "windows" {
 		args = append(args, "--rc-quiet")
 	}
@@ -79,7 +78,7 @@ func (p *Player) Start() error {
 }
 
 func (p *Player) Shutdown() error {
-	_, err := p.execCommand(p.conn.version.shutdownCommand)
+	_, err := p.execCommand(p.conn.shutdownCommand)
 	return err
 }
 
